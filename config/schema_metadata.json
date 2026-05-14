@@ -1,0 +1,330 @@
+{
+  "tables": [
+    {
+      "name": "llm-analytics-dev.ecommerce.orders",
+      "description": "",
+      "columns": [
+        {
+          "name": "order_id",
+          "type": "INTEGER"
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER"
+        },
+        {
+          "name": "status",
+          "type": "STRING"
+        },
+        {
+          "name": "gender",
+          "type": "STRING"
+        },
+        {
+          "name": "created_at",
+          "type": "STRING"
+        },
+        {
+          "name": "returned_at",
+          "type": "STRING"
+        },
+        {
+          "name": "shipped_at",
+          "type": "STRING"
+        },
+        {
+          "name": "delivered_at",
+          "type": "STRING"
+        },
+        {
+          "name": "num_of_item",
+          "type": "INTEGER"
+        }
+      ],
+      "sample_rows": [
+        {
+          "order_id": 8,
+          "user_id": 5,
+          "status": "Cancelled",
+          "gender": "F",
+          "created_at": "2022-10-20 10:03:00+00:00",
+          "returned_at": null,
+          "shipped_at": null,
+          "delivered_at": null,
+          "num_of_item": 3
+        },
+        {
+          "order_id": 60,
+          "user_id": 44,
+          "status": "Cancelled",
+          "gender": "F",
+          "created_at": "2023-01-20 02:12:00+00:00",
+          "returned_at": null,
+          "shipped_at": null,
+          "delivered_at": null,
+          "num_of_item": 1
+        }
+      ]
+    },
+    {
+      "name": "llm-analytics-dev.ecommerce.order_items",
+      "description": "",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER"
+        },
+        {
+          "name": "order_id",
+          "type": "INTEGER"
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER"
+        },
+        {
+          "name": "product_id",
+          "type": "INTEGER"
+        },
+        {
+          "name": "inventory_item_id",
+          "type": "INTEGER"
+        },
+        {
+          "name": "status",
+          "type": "STRING"
+        },
+        {
+          "name": "created_at",
+          "type": "STRING"
+        },
+        {
+          "name": "shipped_at",
+          "type": "STRING"
+        },
+        {
+          "name": "delivered_at",
+          "type": "STRING"
+        },
+        {
+          "name": "returned_at",
+          "type": "STRING"
+        },
+        {
+          "name": "sale_price",
+          "type": "FLOAT"
+        }
+      ],
+      "sample_rows": [
+        {
+          "id": 152013,
+          "order_id": 104663,
+          "user_id": 83582,
+          "product_id": 14235,
+          "inventory_item_id": 410368,
+          "status": "Cancelled",
+          "created_at": "2023-05-07 06:08:40+00:00",
+          "shipped_at": null,
+          "delivered_at": null,
+          "returned_at": null,
+          "sale_price": 0.0199999995529651
+        },
+        {
+          "id": 40993,
+          "order_id": 28204,
+          "user_id": 22551,
+          "product_id": 14235,
+          "inventory_item_id": 110590,
+          "status": "Complete",
+          "created_at": "2023-03-14 03:47:21+00:00",
+          "shipped_at": "2023-03-15 22:57:00+00:00",
+          "delivered_at": "2023-03-18 01:08:00+00:00",
+          "returned_at": null,
+          "sale_price": 0.0199999995529651
+        }
+      ]
+    },
+    {
+      "name": "llm-analytics-dev.ecommerce.products",
+      "description": "",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER"
+        },
+        {
+          "name": "cost",
+          "type": "FLOAT"
+        },
+        {
+          "name": "category",
+          "type": "STRING"
+        },
+        {
+          "name": "name",
+          "type": "STRING"
+        },
+        {
+          "name": "brand",
+          "type": "STRING"
+        },
+        {
+          "name": "retail_price",
+          "type": "FLOAT"
+        },
+        {
+          "name": "department",
+          "type": "STRING"
+        },
+        {
+          "name": "sku",
+          "type": "STRING"
+        },
+        {
+          "name": "distribution_center_id",
+          "type": "INTEGER"
+        }
+      ],
+      "sample_rows": [
+        {
+          "id": 13842,
+          "cost": 2.518749990849756,
+          "category": "Accessories",
+          "name": "Low Profile Dyed Cotton Twill Cap - Navy W39S55D",
+          "brand": "MG",
+          "retail_price": 6.25,
+          "department": "Women",
+          "sku": "EBD58B8A3F1D72F4206201DA62FB1204",
+          "distribution_center_id": 1
+        },
+        {
+          "id": 13928,
+          "cost": 2.3383499148894105,
+          "category": "Accessories",
+          "name": "Low Profile Dyed Cotton Twill Cap - Putty W39S55D",
+          "brand": "MG",
+          "retail_price": 5.949999809265137,
+          "department": "Women",
+          "sku": "2EAC42424D12436BDD6A5B8A88480CC3",
+          "distribution_center_id": 1
+        }
+      ]
+    },
+    {
+      "name": "llm-analytics-dev.ecommerce.users",
+      "description": "",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER"
+        },
+        {
+          "name": "first_name",
+          "type": "STRING"
+        },
+        {
+          "name": "last_name",
+          "type": "STRING"
+        },
+        {
+          "name": "email",
+          "type": "STRING"
+        },
+        {
+          "name": "age",
+          "type": "INTEGER"
+        },
+        {
+          "name": "gender",
+          "type": "STRING"
+        },
+        {
+          "name": "state",
+          "type": "STRING"
+        },
+        {
+          "name": "street_address",
+          "type": "STRING"
+        },
+        {
+          "name": "postal_code",
+          "type": "STRING"
+        },
+        {
+          "name": "city",
+          "type": "STRING"
+        },
+        {
+          "name": "country",
+          "type": "STRING"
+        },
+        {
+          "name": "latitude",
+          "type": "FLOAT"
+        },
+        {
+          "name": "longitude",
+          "type": "FLOAT"
+        },
+        {
+          "name": "traffic_source",
+          "type": "STRING"
+        },
+        {
+          "name": "created_at",
+          "type": "STRING"
+        }
+      ],
+      "sample_rows": [
+        {
+          "id": 457,
+          "first_name": "Timothy",
+          "last_name": "Bush",
+          "email": "timothybush@example.net",
+          "age": 65,
+          "gender": "M",
+          "state": "Acre",
+          "street_address": "87620 Johnson Hills",
+          "postal_code": "69917-400",
+          "city": "Rio Branco",
+          "country": "Brasil",
+          "latitude": -9.945567619,
+          "longitude": -67.83560991,
+          "traffic_source": "Search",
+          "created_at": "2022-07-19 13:51:00+00:00"
+        },
+        {
+          "id": 6578,
+          "first_name": "Elizabeth",
+          "last_name": "Martinez",
+          "email": "elizabethmartinez@example.com",
+          "age": 34,
+          "gender": "F",
+          "state": "Acre",
+          "street_address": "1705 Nielsen Land",
+          "postal_code": "69917-400",
+          "city": "Rio Branco",
+          "country": "Brasil",
+          "latitude": -9.945567619,
+          "longitude": -67.83560991,
+          "traffic_source": "Search",
+          "created_at": "2023-11-08 18:49:00+00:00"
+        }
+      ]
+    }
+  ],
+  "few_shot_examples": [
+    {
+      "question": "What was total revenue by month in 2023 for completed orders?",
+      "sql": "SELECT DATE_TRUNC(DATE(o.created_at), MONTH) AS month, SUM(oi.sale_price) AS revenue FROM `bigquery-public-data.thelook_ecommerce.orders` o JOIN `bigquery-public-data.thelook_ecommerce.order_items` oi USING(order_id) WHERE o.status = 'Complete' AND EXTRACT(YEAR FROM o.created_at) = 2023 GROUP BY month ORDER BY month;"
+    },
+    {
+      "question": "Top 10 products by revenue last 30 days",
+      "sql": "SELECT p.name, SUM(oi.sale_price) AS revenue FROM `bigquery-public-data.thelook_ecommerce.order_items` oi JOIN `bigquery-public-data.thelook_ecommerce.products` p ON p.id = oi.product_id WHERE oi.created_at >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 30 DAY) GROUP BY p.name ORDER BY revenue DESC LIMIT 10;"
+    },
+    {
+      "question": "How many orders were returned in Q1 2024 by country?",
+      "sql": "SELECT u.country, COUNT(*) AS returned_orders FROM `bigquery-public-data.thelook_ecommerce.orders` o JOIN `bigquery-public-data.thelook_ecommerce.users` u ON u.id = o.user_id WHERE o.status = 'Returned' AND DATE(o.returned_at) BETWEEN '2024-01-01' AND '2024-03-31' GROUP BY u.country ORDER BY returned_orders DESC;"
+    }
+  ]
+}

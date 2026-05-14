@@ -1,0 +1,10 @@
+google-cloud-bigquery==3.25.0
+openai==1.40.0
+google-generativeai==0.7.2
+anthropic==0.34.0
+streamlit==1.37.0
+pandas==2.2.0
+plotly==5.22.0
+python-dotenv==1.0.1
+db-dtypes
+pytest==8.3.0

@@ -36,16 +36,4 @@ def call_llm(system: str, user: str, temperature: float = 0.0) -> str:
         )
         return resp.text or ""
 
-    if PROVIDER == "anthropic":
-        import anthropic
-        client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
-        resp = client.messages.create(
-            model=os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5"),
-            max_tokens=1024,
-            temperature=temperature,
-            system=system,
-            messages=[{"role": "user", "content": user}],
-        )
-        return resp.content[0].text
-
-    raise ValueError(f"Unknown LLM_PROVIDER: {PROVIDER}")
+    raise ValueError(f"Unknown provider: {PROVIDER}")

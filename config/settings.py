@@ -1,0 +1,40 @@
+"""Centralised config loader. All modules import from here."""
+from __future__ import annotations
+
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+_root = Path(__file__).parent.parent
+load_dotenv(_root / ".env")
+load_dotenv(_root / "config" / ".env") 
+
+
+def require(key: str) -> str:
+    """Return env var or raise a clear error."""
+    val = os.getenv(key)
+    if not val:
+        raise EnvironmentError(
+            f"Missing required environment variable: {key}\n"
+        )
+    return val
+
+
+def get(key: str, default: str = "") -> str:
+    return os.getenv(key, default)
+
+
+GCP_PROJECT_ID: str = get("GCP_PROJECT_ID", "")
+BQ_DATASET: str = get("BQ_DATASET", "ecommerce")
+GOOGLE_APPLICATION_CREDENTIALS: str = get(
+    "GOOGLE_APPLICATION_CREDENTIALS", "credentials/bq_key.json"
+)
+
+LLM_PROVIDER: str = get("LLM_PROVIDER", "openai").lower()
+MEMORY_TURNS: int = int(get("MEMORY_TURNS", "4"))
+
+OPENAI_API_KEY: str = get("OPENAI_API_KEY")
+OPENAI_MODEL: str = get("OPENAI_MODEL", "gpt-4o-mini")
+
+GEMINI_API_KEY: str = get("GEMINI_API_KEY")
+GEMINI_MODEL: str = get("GEMINI_MODEL", "gemini-1.5-flash")

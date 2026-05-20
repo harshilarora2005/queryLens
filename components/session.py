@@ -1,12 +1,12 @@
-"""Streamlit conversation memory (last N turns)."""
 import streamlit as st
+from config import settings
 
-MAX_TURNS = 4
+MAX_TURNS = settings.MEMORY_TURNS
 
 
 def init() -> None:
     if "history" not in st.session_state:
-        st.session_state.history = []  # list[{q, sql, ok}]
+        st.session_state.history = []
 
 
 def add_turn(question: str, sql: str, ok: bool) -> None:

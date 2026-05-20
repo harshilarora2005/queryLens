@@ -46,7 +46,6 @@ def _clean(sql: str) -> str:
 
 
 def generate_sql(question: str, history: list[dict] | None = None) -> str:
-    """Returns a validated SQL string. Raises on failure."""
     history = history or []
     convo = "\n".join(f"User: {h['q']}\nSQL: {h['sql']}" for h in history[-4:])
     user = f"{convo}\n\nUser: {question}" if convo else question
@@ -57,7 +56,6 @@ def generate_sql(question: str, history: list[dict] | None = None) -> str:
 
 
 def generate_and_run(question: str, history: list[dict] | None = None):
-    """Generate SQL, run it, retry on BigQuery errors up to MAX_RETRIES."""
     sql = generate_sql(question, history)
     last_err: Exception | None = None
 
@@ -65,7 +63,7 @@ def generate_and_run(question: str, history: list[dict] | None = None):
         try:
             df = run_query(sql)
             return sql, df
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:  
             last_err = e
             if attempt == MAX_RETRIES:
                 break

@@ -1,4 +1,3 @@
-"""Blocks destructive SQL before execution."""
 import re
 
 BLOCKED = re.compile(

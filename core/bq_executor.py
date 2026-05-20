@@ -4,9 +4,12 @@ from __future__ import annotations
 import os
 import pandas as pd
 from google.cloud import bigquery
-from dotenv import load_dotenv
+from config import settings
 
-load_dotenv("config/.env")
+if settings.GOOGLE_APPLICATION_CREDENTIALS:
+    os.environ.setdefault(
+        "GOOGLE_APPLICATION_CREDENTIALS", settings.GOOGLE_APPLICATION_CREDENTIALS
+    )
 
 _client: bigquery.Client | None = None
 
@@ -14,9 +17,11 @@ _client: bigquery.Client | None = None
 def get_client() -> bigquery.Client:
     global _client
     if _client is None:
-        _client = bigquery.Client(project=os.environ["GCP_PROJECT_ID"])
+        project = settings.GCP_PROJECT_ID or None  
+        _client = bigquery.Client(project=project)
     return _client
 
 
 def run_query(sql: str) -> pd.DataFrame:
+    """Execute validated SQL and return a DataFrame. Raises on error."""
     return get_client().query(sql).to_dataframe()

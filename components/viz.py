@@ -1,10 +1,8 @@
 from __future__ import annotations
-
+import hashlib
 import io
-
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 import streamlit as st
 
 _PALETTE = [
@@ -33,7 +31,6 @@ def _is_categorical(s: pd.Series) -> bool:
 
 
 def _fmt(n: float) -> str:
-    """Human-readable large numbers."""
     if abs(n) >= 1_000_000:
         return f"{n/1_000_000:.2f}M"
     if abs(n) >= 1_000:
@@ -41,11 +38,15 @@ def _fmt(n: float) -> str:
     return f"{n:,.2f}"
 
 
+def _widget_key(sql: str, suffix: str) -> str:
+    """Stable unique key from SQL hash + suffix. Safe for multiple renders."""
+    h = hashlib.md5(sql.encode(), usedforsecurity=False).hexdigest()[:8]
+    return f"{suffix}_{h}"
+
 
 def _nl_summary(question: str, df: pd.DataFrame) -> str:
     try:
         from core.llm_client import call_llm
-
         preview = df.head(5).to_markdown(index=False)
         prompt = (
             f"The user asked: '{question}'\n\n"
@@ -58,7 +59,7 @@ def _nl_summary(question: str, df: pd.DataFrame) -> str:
             user=prompt,
             temperature=0.2,
         )
-    except Exception:  
+    except Exception:
         return ""
 
 
@@ -67,19 +68,25 @@ def render(df: pd.DataFrame, question: str = "", sql: str = "") -> None:
         st.info("Query returned no rows.")
         return
 
+    # Single-cell scalar — show as metric
     if df.shape == (1, 1):
         val = df.iloc[0, 0]
         col_name = df.columns[0]
-        st.metric(label=col_name.replace("_", " ").title(), value=_fmt(float(val)) if isinstance(val, (int, float)) else str(val))
+        st.metric(
+            label=col_name.replace("_", " ").title(),
+            value=_fmt(float(val)) if isinstance(val, (int, float)) else str(val),
+        )
         _action_row(df, sql)
         return
+
     if question:
         summary = _nl_summary(question, df)
         if summary:
-            st.caption(f"{summary}")
+            st.caption(summary)
 
     with st.expander("Raw data", expanded=True):
         st.dataframe(df, use_container_width=True, hide_index=True)
+
     if len(df.columns) >= 2:
         x, y = df.columns[0], df.columns[1]
         fig = None
@@ -98,15 +105,16 @@ def render(df: pd.DataFrame, question: str = "", sql: str = "") -> None:
                 with tab_bar:
                     fig_bar = px.bar(df.sort_values(y, ascending=False), x=x, y=y)
                     fig_bar.update_layout(**_LAYOUT)
-                    st.plotly_chart(fig_bar, use_container_width=True)
+                    st.plotly_chart(fig_bar, use_container_width=True,
+                                    key=_widget_key(sql, "bar"))
                 with tab_pie:
                     fig_pie = px.pie(df, names=x, values=y, hole=0.35)
                     fig_pie.update_layout(**_LAYOUT)
-                    st.plotly_chart(fig_pie, use_container_width=True)
+                    st.plotly_chart(fig_pie, use_container_width=True,
+                                    key=_widget_key(sql, "pie"))
                 _action_row(df, sql)
                 return
             else:
-                # Horizontal bar for many categories
                 fig = px.bar(
                     df.sort_values(y, ascending=True).tail(20),
                     x=y, y=x, orientation="h",
@@ -114,13 +122,14 @@ def render(df: pd.DataFrame, question: str = "", sql: str = "") -> None:
 
         if fig is not None:
             fig.update_layout(**_LAYOUT)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True,
+                            key=_widget_key(sql, "fig"))
 
     _action_row(df, sql)
 
 
 def _action_row(df: pd.DataFrame, sql: str) -> None:
-    """CSV download + copy-SQL buttons."""
+    """CSV download + SQL popover — keyed by SQL hash to avoid duplicates."""
     cols = st.columns([1, 1, 4])
 
     csv_buf = io.StringIO()
@@ -131,6 +140,7 @@ def _action_row(df: pd.DataFrame, sql: str) -> None:
         file_name="results.csv",
         mime="text/csv",
         use_container_width=True,
+        key=_widget_key(sql, "csv_dl"), 
     )
 
     if sql:

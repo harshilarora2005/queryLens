@@ -1,8 +1,9 @@
 import time
 import streamlit as st
-from components import chat_ui, session
+from components import chat_ui, session, cost_badge
 from components.session import STARTER_QUESTIONS
 from core.sql_generator import generate_and_run
+from core.bq_executor import estimate_cost, run_query
 
 st.set_page_config(
     page_title="Analytics Assistant",
@@ -70,6 +71,12 @@ if question:
     sql = "" 
     t0 = time.perf_counter()
     try:
+        with st.spinner("Estimating query cost..."):
+            try:
+                cost = estimate_cost(sql)
+                cost_badge.render(cost)
+            except Exception:
+                pass 
         with st.spinner("Generating SQL and querying BigQuery…"):
             sql, df = generate_and_run(question, session.get_history())
         elapsed = time.perf_counter() - t0

@@ -1,11 +1,10 @@
-"""Streamlit entry point for the LLM Analytics Assistant."""
 from __future__ import annotations
 
 import time
 
 import streamlit as st
 
-from components import chat_ui, cost_badge, session
+from components import chat_ui, session
 from components.session import STARTER_QUESTIONS
 from core.bq_executor import estimate_cost, run_query
 from core.sql_generator import generate_sql
@@ -30,7 +29,6 @@ st.markdown(
 
 session.init()
 
-# ── Sidebar ──────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.title("Analytics Assistant")
     st.caption("TheLook Ecommerce · BigQuery")
@@ -70,41 +68,51 @@ question = (
 )
 
 if question:
-    # ① Echo the user bubble immediately — don't wait for BigQuery
-    chat_ui.echo_question(question)
+    session.add_pending(question)
+    with st.chat_message("user"):
+        st.write(question)
 
     sql = ""
     t0 = time.perf_counter()
 
     try:
-        with st.spinner("Generating SQL…"):
-            sql = generate_sql(question, session.get_llm_history())
+        with st.chat_message("assistant"):
+            with st.spinner("Generating SQL…"):
+                sql = generate_sql(question, session.get_llm_history())
 
-        try:
-            with st.spinner("Estimating cost…"):
-                cost = estimate_cost(sql)
-            cost_badge.render(cost)
-        except Exception:
-            pass
+            st.code(sql, language="sql")
 
-        with st.spinner("Querying BigQuery…"):
-            df = run_query(sql)
+            try:
+                with st.spinner("Estimating cost…"):
+                    cost = estimate_cost(sql)
+                from components.cost_badge import render as render_cost
+                render_cost(cost)
+            except Exception:
+                pass
 
-        elapsed = time.perf_counter() - t0
+            with st.spinner("Querying BigQuery…"):
+                df = run_query(sql)
 
-        session.add_turn(
-            question,
-            sql,
-            ok=True,
+            elapsed = time.perf_counter() - t0
+
+            if df is None or df.empty:
+                st.info("Query returned no rows — try a different date range or filter.")
+            else:
+                from components.viz import render as render_viz
+                render_viz(df, question=question, sql=sql)
+
+            if elapsed:
+                rows = len(df) if df is not None and not df.empty else 0
+                st.caption(f"Completed in {elapsed:.1f}s · {rows:,} rows" if rows else f"Completed in {elapsed:.1f}s")
+        session.complete_turn(
+            question, sql, ok=True,
             row_count=len(df) if df is not None else 0,
             df=df,
         )
 
-        chat_ui.render_result(question, sql, df, elapsed=elapsed)
-
     except Exception as e:
         elapsed = time.perf_counter() - t0
-        session.add_turn(question, sql=str(e), ok=False)
+        session.complete_turn(question, sql=str(e), ok=False)
         st.error(f"**Could not generate a valid query.** {e}")
         st.caption(
             f"Failed after {elapsed:.1f}s. "

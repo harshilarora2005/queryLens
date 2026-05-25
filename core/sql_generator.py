@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 
 import pandas as pd
+import streamlit as st
 
 from config import settings
 from core.bq_executor import run_query
@@ -14,15 +15,15 @@ from core.sql_validator import validate
 SCHEMA_PATH = Path("config/schema_metadata.json")
 SCHEMA = json.loads(SCHEMA_PATH.read_text())
 
-MAX_RETRIES = 2              
+MAX_RETRIES = 2
 HISTORY_TURNS = settings.MEMORY_TURNS
 HISTORY_CHAR_LIMIT = 2_000
 
 _ERROR_HINTS: list[tuple[re.Pattern, str]] = [
     (
         re.compile(r"PARSE_TIMESTAMP", re.I),
-        "PARSE_TIMESTAMP requires 2 args: PARSE_TIMESTAMP(format, col). "
-        "Prefer TIMESTAMP(col) instead — it handles the stored format automatically.",
+        "PARSE_TIMESTAMP requires 2 args. Prefer TIMESTAMP(col) instead — "
+        "it handles the stored format automatically.",
     ),
     (
         re.compile(r"unrecognized name", re.I),
@@ -30,8 +31,7 @@ _ERROR_HINTS: list[tuple[re.Pattern, str]] = [
     ),
     (
         re.compile(r"no matching signature for function", re.I),
-        "A function is called with the wrong argument types or count. "
-        "Check the BigQuery Standard SQL function reference.",
+        "A function is called with the wrong argument types or count.",
     ),
     (
         re.compile(r"not found: table", re.I),
@@ -52,6 +52,51 @@ def _get_error_hint(error: str) -> str:
     return "Fix the SQL so it runs successfully in BigQuery Standard SQL."
 
 
+@st.cache_data(show_spinner=False, ttl=3600)
+def _fetch_date_range() -> dict | None:
+    """Query the actual MIN/MAX dates from the dataset. Cached for 1 hour."""
+    try:
+        table = f"{settings.GCP_PROJECT_ID}.{settings.BQ_DATASET}.orders"
+        sql = f"""
+            SELECT
+                DATE(TIMESTAMP(MIN(created_at))) AS min_date,
+                DATE(TIMESTAMP(MAX(created_at))) AS max_date
+            FROM `{table}`
+        """
+        df = run_query(sql)
+        if df.empty:
+            return None
+        return {
+            "min": str(df.iloc[0]["min_date"]),
+            "max": str(df.iloc[0]["max_date"]),
+        }
+    except Exception:
+        return None
+
+
+def _date_range_context() -> str:
+    """Return a prompt snippet describing the dataset's actual date range."""
+    dr = _fetch_date_range()
+    if dr:
+        return (
+            f"Dataset date range: orders span from {dr['min']} to {dr['max']}.\n"
+            f"IMPORTANT: The dataset is NOT current. Never use CURRENT_DATE(), "
+            f"CURRENT_TIMESTAMP(), or relative expressions like INTERVAL 30 DAY "
+            f"anchored to today. Instead, anchor relative queries to the dataset's "
+            f"most recent date ({dr['max']}). For example:\n"
+            f"  - 'last 30 days'  → DATE(TIMESTAMP(created_at)) >= DATE_SUB(DATE '{dr['max']}', INTERVAL 30 DAY)\n"
+            f"  - 'last month'    → DATE_TRUNC(DATE '{dr['max']}', MONTH) - 1 month\n"
+            f"  - 'this year'     → EXTRACT(YEAR FROM DATE '{dr['max']}')\n"
+            f"  - 'recent'        → use {dr['max']} as the reference point\n"
+        )
+    # Fallback if date range query fails
+    return (
+        "IMPORTANT: This dataset is not current — it does not contain recent data. "
+        "Avoid CURRENT_DATE() or CURRENT_TIMESTAMP(). "
+        "Use explicit date ranges like '2023-01-01' to '2023-12-31' instead.\n"
+    )
+
+
 def _system_prompt() -> str:
     examples = "\n\n".join(
         f"Q: {ex['question']}\nSQL: {ex['sql']}"
@@ -68,16 +113,16 @@ Rules:
 - Prefer DATE_TRUNC for time-series bucketing.
 - Return columns in a logical order: dimensions first, then metrics.
 
+{_date_range_context()}
+
 Timestamp handling (CRITICAL):
 - Timestamp columns (created_at, returned_at, shipped_at, delivered_at) are stored
   as STRING in the format '2023-03-15 14:22:00+00:00'.
-- Cast them with TIMESTAMP(col) before any date operation:
+- Cast with TIMESTAMP(col) before any date operation:
     DATE(TIMESTAMP(created_at))
     EXTRACT(YEAR FROM TIMESTAMP(created_at))
     DATE_TRUNC(DATE(TIMESTAMP(created_at)), MONTH)
-- NEVER call PARSE_TIMESTAMP with one argument — it requires two:
-    PARSE_TIMESTAMP('%Y-%m-%d %H:%M:%E*S%Ez', created_at)
-  But prefer TIMESTAMP(col) — it's simpler and handles the stored format.
+- NEVER call PARSE_TIMESTAMP with one argument.
 - Date range filter: DATE(TIMESTAMP(created_at)) BETWEEN '2023-01-01' AND '2023-12-31'
 
 Schema:
@@ -96,10 +141,8 @@ def _clean(sql: str) -> str:
 
 
 def _build_user_message(question: str, history: list[dict]) -> str:
-    """Inject conversation history with char-budget trimming."""
     if not history:
         return question
-
     parts: list[str] = []
     total = 0
     for h in reversed(history[-HISTORY_TURNS:]):
@@ -108,13 +151,11 @@ def _build_user_message(question: str, history: list[dict]) -> str:
             break
         parts.append(chunk)
         total += len(chunk)
-
     prefix = "\n".join(reversed(parts))
     return f"{prefix}\nUser: {question}" if prefix else question
 
 
 def generate_sql(question: str, history: list[dict] | None = None) -> str:
-    """Generate and validate SQL. Raises on failure."""
     user = _build_user_message(question, history or [])
     sql = _clean(call_llm(_system_prompt(), user))
     validate(sql)
@@ -125,10 +166,6 @@ def generate_and_run(
     question: str,
     history: list[dict] | None = None,
 ) -> tuple[str, pd.DataFrame]:
-    """Generate SQL, execute it, self-heal on BigQuery errors up to MAX_RETRIES.
-
-    Returns (sql_string, dataframe). Raises RuntimeError if all retries exhausted.
-    """
     sql = generate_sql(question, history)
     last_err: Exception | None = None
 
@@ -140,8 +177,6 @@ def generate_and_run(
             last_err = e
             if attempt == MAX_RETRIES:
                 break
-
-            # Pattern-match the error to give the LLM a targeted hint
             hint = _get_error_hint(str(e))
             fix_prompt = (
                 f"The following BigQuery SQL failed:\n\n"

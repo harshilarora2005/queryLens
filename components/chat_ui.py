@@ -1,36 +1,53 @@
+from __future__ import annotations
+
 import streamlit as st
 from components import session, viz
 
+
+def _render_turn(turn: dict) -> None:
+    with st.chat_message("user"):
+        st.write(turn["q"])
+
+    with st.chat_message("assistant"):
+        if not turn.get("ok", True):
+            st.error(turn["sql"])
+            return
+
+        st.code(turn["sql"], language="sql")
+
+        # Re-render cached dataframe + chart if we stored it
+        df = turn.get("df")
+        if df is not None and not df.empty:
+            viz.render(df, question=turn.get("q", ""), sql=turn.get("sql", ""))
+        elif turn.get("ok"):
+            st.caption("Query returned no rows.")
+
+
 def render_history() -> None:
+    """Replay all previous turns from session state."""
     for turn in session.get_history():
-        with st.chat_message("user"):
-            st.write(turn["q"])
-        with st.chat_message("assistant"):
-            if turn["ok"]:
-                st.code(turn["sql"], language="sql")
-                if turn.get("rows"):
-                    st.caption(f"{turn['rows']:,} rows returned")
-            else:
-                st.warning(f"Failed: {turn['sql']}")
+        _render_turn(turn)
 
 
-def render_result(question: str, sql: str, df, elapsed: float = 0.0) -> None:
+def echo_question(question: str) -> None:
+    """Immediately show the user bubble before processing starts."""
     with st.chat_message("user"):
         st.write(question)
-    with st.chat_message("assistant"):
-        meta_parts = []
-        if elapsed:
-            meta_parts.append(f"⏱ {elapsed:.1f}s")
-        if df is not None and not df.empty:
-            meta_parts.append(f"{len(df):,} rows")
-        if meta_parts:
-            st.caption("  ·  ".join(meta_parts))
 
+
+def render_result(
+    question: str,
+    sql: str,
+    df,
+    elapsed: float = 0.0,
+) -> None:
+    with st.chat_message("assistant"):
         st.code(sql, language="sql")
 
-        col_save, _ = st.columns([1, 5])
-        if col_save.button("Save query", key=f"save_{hash(question)}"):
-            session.save_query(question, sql)
-            st.toast("Query saved!")
+        if df is None or df.empty:
+            st.info("Query returned no rows — try a different date range or filter.")
+        else:
+            viz.render(df, question=question, sql=sql)
 
-        viz.render(df, question=question, sql=sql)
+        if elapsed:
+            st.caption(f"Completed in {elapsed:.1f}s · {len(df):,} rows" if df is not None and not df.empty else f"Completed in {elapsed:.1f}s")

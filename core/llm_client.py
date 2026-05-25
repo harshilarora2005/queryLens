@@ -1,9 +1,8 @@
-"""Provider-agnostic LLM client. Returns plain text completion."""
 from __future__ import annotations
 
 import os
 from dotenv import load_dotenv
-
+from config import settings
 load_dotenv("config/.env")
 
 PROVIDER = os.getenv("LLM_PROVIDER", "gemini").lower()

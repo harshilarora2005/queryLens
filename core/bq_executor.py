@@ -23,5 +23,4 @@ def get_client() -> bigquery.Client:
 
 
 def run_query(sql: str) -> pd.DataFrame:
-    """Execute validated SQL and return a DataFrame. Raises on error."""
     return get_client().query(sql).to_dataframe()

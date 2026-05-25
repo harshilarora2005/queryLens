@@ -8,6 +8,7 @@ from components import chat_ui, session
 from components.session import STARTER_QUESTIONS
 from core.bq_executor import estimate_cost, run_query
 from core.sql_generator import generate_sql
+from ingestion import schema_refresh
 
 st.set_page_config(
     page_title="Analytics Assistant",
@@ -28,6 +29,8 @@ st.markdown(
 )
 
 session.init()
+
+schema_refresh.start(interval_hours=24)
 
 with st.sidebar:
     st.title("Analytics Assistant")
@@ -52,6 +55,26 @@ with st.sidebar:
             if c2.button("🗑", key=f"del_{i}"):
                 session.delete_saved(i)
                 st.rerun()
+    st.divider()
+    st.markdown('<p class="sidebar-section">Schema</p>', unsafe_allow_html=True)
+
+    last_refresh = st.session_state.get("schema_last_refreshed", "unknown")
+    refresh_error = st.session_state.get("schema_refresh_error")
+
+    if refresh_error:
+        st.caption(f"⚠ Last refresh failed: {refresh_error}")
+    else:
+        st.caption(f"Last refreshed: {last_refresh}")
+
+    if st.button("↺ Refresh schema now", use_container_width=True):
+        with st.spinner("Refreshing schema from BigQuery…"):
+            ok = schema_refresh.refresh_now()
+        if ok:
+            st.success("Schema refreshed.")
+            st.session_state.pop("schema_refresh_error", None)
+        else:
+            st.error("Refresh failed — check logs.")
+        st.rerun()
 
     st.divider()
     st.caption("LLM Analytics Assistant · v2.0")
@@ -69,6 +92,7 @@ question = (
 
 if question:
     session.add_pending(question)
+
     with st.chat_message("user"):
         st.write(question)
 
@@ -101,9 +125,12 @@ if question:
                 from components.viz import render as render_viz
                 render_viz(df, question=question, sql=sql)
 
-            if elapsed:
-                rows = len(df) if df is not None and not df.empty else 0
-                st.caption(f"Completed in {elapsed:.1f}s · {rows:,} rows" if rows else f"Completed in {elapsed:.1f}s")
+            rows = len(df) if df is not None and not df.empty else 0
+            st.caption(
+                f"Completed in {elapsed:.1f}s · {rows:,} rows"
+                if rows else f"Completed in {elapsed:.1f}s"
+            )
+
         session.complete_turn(
             question, sql, ok=True,
             row_count=len(df) if df is not None else 0,

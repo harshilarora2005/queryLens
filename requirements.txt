@@ -7,3 +7,4 @@ plotly==5.22.0
 python-dotenv==1.0.1
 db-dtypes
 pytest==8.3.0
+apscheduler

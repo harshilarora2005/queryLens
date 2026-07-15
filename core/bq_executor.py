@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import os
 import pandas as pd
 from dataclasses import dataclass
 from google.cloud import bigquery
 from config import settings
 from core import rate_limiter
-
+from google.oauth2 import service_account
+import json
+import os
 if settings.GOOGLE_APPLICATION_CREDENTIALS:
     os.environ.setdefault(
         "GOOGLE_APPLICATION_CREDENTIALS", settings.GOOGLE_APPLICATION_CREDENTIALS
@@ -18,9 +19,24 @@ _PRICE_PER_TB = 5.0
 
 def get_client() -> bigquery.Client:
     global _client
+
     if _client is None:
         project = settings.GCP_PROJECT_ID or None
-        _client = bigquery.Client(project=project)
+
+        service_account_json = os.getenv("GOOGLE_SERVICE_ACCOUNT")
+
+        if service_account_json:
+            credentials = service_account.Credentials.from_service_account_info(
+                json.loads(service_account_json)
+            )
+
+            _client = bigquery.Client(
+                project=project,
+                credentials=credentials,
+            )
+        else:
+            _client = bigquery.Client(project=project)
+
     return _client
 
 

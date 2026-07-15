@@ -1,4 +1,3 @@
-"""Centralised config loader. All modules import from here."""
 from __future__ import annotations
 
 import os
@@ -11,7 +10,6 @@ load_dotenv(_root / "config" / ".env")
 
 
 def require(key: str) -> str:
-    """Return env var or raise a clear error."""
     val = os.getenv(key)
     if not val:
         raise EnvironmentError(

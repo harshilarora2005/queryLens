@@ -8,10 +8,6 @@ from core import rate_limiter
 from google.oauth2 import service_account
 import json
 import os
-if settings.GOOGLE_APPLICATION_CREDENTIALS:
-    os.environ.setdefault(
-        "GOOGLE_APPLICATION_CREDENTIALS", settings.GOOGLE_APPLICATION_CREDENTIALS
-    )
 
 _client = None
 

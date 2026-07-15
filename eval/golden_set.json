@@ -1,0 +1,181 @@
+{
+    "questions": [
+        {
+        "id": "top_products_by_revenue",
+        "question": "What are the top 5 products by total revenue?",
+        "required_tables": ["order_items", "products"],
+        "required_columns": ["sale_price"],
+        "requires_join": true,
+        "requires_group_by": true,
+        "requires_order_by": true,
+        "requires_limit": true,
+        "required_aggregations": ["SUM"]
+        },
+        {
+        "id": "orders_by_gender",
+        "question": "How many orders were placed by each gender?",
+        "required_tables": ["orders"],
+        "required_columns": ["gender"],
+        "requires_group_by": true,
+        "required_aggregations": ["COUNT"]
+        },
+        {
+        "id": "return_rate_by_category",
+        "question": "Which product category has the highest number of returned items?",
+        "required_tables": ["order_items", "products"],
+        "required_columns": ["category"],
+        "requires_join": true,
+        "requires_group_by": true,
+        "requires_order_by": true,
+        "requires_limit": true,
+        "required_aggregations": ["COUNT"]
+        },
+        {
+        "id": "top_customers_by_spend",
+        "question": "List the top 10 customers by total amount spent.",
+        "required_tables": ["order_items", "users"],
+        "required_columns": ["sale_price"],
+        "requires_join": true,
+        "requires_group_by": true,
+        "requires_order_by": true,
+        "requires_limit": true,
+        "required_aggregations": ["SUM"]
+        },
+        {
+        "id": "cancelled_order_percentage",
+        "question": "What percentage of orders are cancelled?",
+        "required_tables": ["orders"],
+        "required_columns": ["status"],
+        "required_aggregations": ["COUNT"]
+        },
+        {
+        "id": "revenue_by_state",
+        "question": "What is the total revenue by state?",
+        "required_tables": ["order_items", "users"],
+        "required_columns": ["sale_price", "state"],
+        "requires_join": true,
+        "requires_group_by": true,
+        "required_aggregations": ["SUM"]
+        },
+        {
+        "id": "avg_age_by_traffic_source",
+        "question": "What is the average customer age by traffic source?",
+        "required_tables": ["users"],
+        "required_columns": ["age", "traffic_source"],
+        "requires_group_by": true,
+        "required_aggregations": ["AVG"]
+        },
+        {
+        "id": "top_brand_by_items_sold",
+        "question": "What is the most popular product brand by number of items sold?",
+        "required_tables": ["order_items", "products"],
+        "required_columns": ["brand"],
+        "requires_join": true,
+        "requires_group_by": true,
+        "requires_order_by": true,
+        "requires_limit": true,
+        "required_aggregations": ["COUNT"]
+        },
+        {
+        "id": "top_distribution_center_by_orders",
+        "question": "Which distribution center handles the most orders?",
+        "required_tables": ["order_items", "products"],
+        "required_columns": ["distribution_center_id"],
+        "requires_join": true,
+        "requires_group_by": true,
+        "requires_order_by": true,
+        "requires_limit": true,
+        "required_aggregations": ["COUNT"]
+        },
+        {
+        "id": "gender_breakdown_by_country",
+        "question": "What is the breakdown of users by gender and country?",
+        "required_tables": ["users"],
+        "required_columns": ["gender", "country"],
+        "requires_group_by": true,
+        "required_aggregations": ["COUNT"]
+        },
+        {
+        "id": "top_departments_by_sales",
+        "question": "Find the top 3 departments by total sales.",
+        "required_tables": ["order_items", "products"],
+        "required_columns": ["department", "sale_price"],
+        "requires_join": true,
+        "requires_group_by": true,
+        "requires_order_by": true,
+        "requires_limit": true,
+        "required_aggregations": ["SUM"]
+        },
+        {
+        "id": "avg_order_size_by_gender",
+        "question": "What is the average order size, in number of items, by gender?",
+        "required_tables": ["orders"],
+        "required_columns": ["num_of_item", "gender"],
+        "requires_group_by": true,
+        "required_aggregations": ["AVG"]
+        },
+        {
+        "id": "orders_per_traffic_source",
+        "question": "What is the total number of orders per traffic source, sorted from highest to lowest?",
+        "required_tables": ["orders", "users"],
+        "required_columns": ["traffic_source"],
+        "requires_join": true,
+        "requires_group_by": true,
+        "requires_order_by": true,
+        "required_aggregations": ["COUNT"]
+        },
+        {
+        "id": "avg_retail_price_by_category",
+        "question": "What is the average retail price per product category?",
+        "required_tables": ["products"],
+        "required_columns": ["retail_price", "category"],
+        "requires_group_by": true,
+        "required_aggregations": ["AVG"]
+        },
+        {
+        "id": "total_revenue_overall",
+        "question": "What is the total revenue across all completed order items?",
+        "required_tables": ["order_items"],
+        "required_columns": ["sale_price"],
+        "required_aggregations": ["SUM"]
+        },
+        {
+        "id": "distinct_customers_count",
+        "question": "How many distinct customers have made a purchase?",
+        "required_tables": ["order_items"],
+        "required_columns": ["user_id"],
+        "required_aggregations": ["COUNT"]
+        },
+        {
+        "id": "min_max_order_dates",
+        "question": "What is the earliest and latest order date in the dataset?",
+        "required_tables": ["orders"],
+        "required_columns": ["created_at"],
+        "required_aggregations": ["MIN", "MAX"]
+        },
+        {
+        "id": "avg_cost_vs_retail_by_brand",
+        "question": "What is the average cost and average retail price for each brand?",
+        "required_tables": ["products"],
+        "required_columns": ["cost", "retail_price", "brand"],
+        "requires_group_by": true,
+        "required_aggregations": ["AVG"]
+        },
+        {
+        "id": "order_count_by_status",
+        "question": "How many orders are there for each order status?",
+        "required_tables": ["orders"],
+        "required_columns": ["status"],
+        "requires_group_by": true,
+        "required_aggregations": ["COUNT"]
+        },
+        {
+        "id": "top_5_highest_priced_products",
+        "question": "Show the 5 highest-priced products by retail price.",
+        "required_tables": ["products"],
+        "required_columns": ["retail_price"],
+        "requires_order_by": true,
+        "requires_limit": true
+        }
+    ]
+}

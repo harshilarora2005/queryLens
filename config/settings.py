@@ -1,4 +1,3 @@
-"""Centralised config loader. All modules import from here."""
 from __future__ import annotations
 
 import os
@@ -11,7 +10,6 @@ load_dotenv(_root / "config" / ".env")
 
 
 def require(key: str) -> str:
-    """Return env var or raise a clear error."""
     val = os.getenv(key)
     if not val:
         raise EnvironmentError(
@@ -32,6 +30,8 @@ GOOGLE_APPLICATION_CREDENTIALS: str = get(
 
 LLM_PROVIDER: str = get("LLM_PROVIDER", "openai").lower()
 MEMORY_TURNS: int = int(get("MEMORY_TURNS", "4"))
+
+MAX_BYTES_BILLED: int = int(get("MAX_BYTES_BILLED", str(1_000_000_000)))
 
 OPENAI_API_KEY: str = get("OPENAI_API_KEY")
 OPENAI_MODEL: str = get("OPENAI_MODEL", "gpt-4o-mini")

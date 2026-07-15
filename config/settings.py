@@ -29,9 +29,6 @@ BQ_SOURCE_PROJECT: str = get("BQ_SOURCE_PROJECT", "bigquery-public-data")
 
 
 BQ_DATASET: str = get("BQ_DATASET", "thelook_ecommerce")
-GOOGLE_APPLICATION_CREDENTIALS: str = get(
-    "GOOGLE_APPLICATION_CREDENTIALS", "credentials/bq_key.json"
-)
 
 LLM_PROVIDER: str = get("LLM_PROVIDER", "openai").lower()
 MEMORY_TURNS: int = int(get("MEMORY_TURNS", "4"))

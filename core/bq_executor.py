@@ -19,7 +19,7 @@ def get_client() -> bigquery.Client:
     if _client is None:
         project = settings.GCP_PROJECT_ID or None
 
-        service_account_json = os.getenv("GOOGLE_SERVICE_ACCOUNT")
+        service_account_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
         if service_account_json:
             credentials = service_account.Credentials.from_service_account_info(

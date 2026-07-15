@@ -5,7 +5,7 @@
 
 **Ask a business question in plain English, get back validated SQL, a cost estimate, and a chart — with self-healing retries when the SQL fails.**
 
-🔗 [Live demo](#https://querylens-assistant.streamlit.app/)
+🔗 [Live demo](https://querylens-assistant.streamlit.app/)
 
 ![demo](docs/demo.gif)
 

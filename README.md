@@ -1,7 +1,6 @@
 # QueryLens
 
 [![CI](https://github.com/harshilarora2005/queryLens/actions/workflows/ci.yml/badge.svg)](https://github.com/harshilarora2005/queryLens/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Ask a business question in plain English, get back validated SQL, a cost estimate, and a chart — with self-healing retries when the SQL fails.**
 

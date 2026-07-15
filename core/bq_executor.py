@@ -5,13 +5,14 @@ import pandas as pd
 from dataclasses import dataclass
 from google.cloud import bigquery
 from config import settings
+from core import rate_limiter
 
 if settings.GOOGLE_APPLICATION_CREDENTIALS:
     os.environ.setdefault(
         "GOOGLE_APPLICATION_CREDENTIALS", settings.GOOGLE_APPLICATION_CREDENTIALS
     )
 
-_client: bigquery.Client | None = None
+_client = None
 
 _PRICE_PER_TB = 5.0
 
@@ -37,6 +38,7 @@ class QueryCost:
         return self.bytes_processed / 1_000_000_000
 
     def label(self) -> str:
+        """Human-readable size label."""
         if self.bytes_processed < 1_000_000:
             return f"{self.bytes_processed / 1_000:.1f} KB"
         if self.bytes_processed < 1_000_000_000:
@@ -49,7 +51,6 @@ class QueryCost:
         return f"${self.estimated_usd:.4f}"
 
     def within_free_tier(self) -> bool:
-        """BigQuery gives 1 TB/month free."""
         return self.gb < 1_000
 
 
@@ -60,7 +61,7 @@ class QueryTooExpensiveError(RuntimeError):
 def estimate_cost(sql: str) -> QueryCost:
     job_config = bigquery.QueryJobConfig(
         dry_run=True,
-        use_query_cache=False,   
+        use_query_cache=False,  
     )
     dry_run_job = get_client().query(sql, job_config=job_config)
     bytes_processed = dry_run_job.total_bytes_processed or 0
@@ -76,11 +77,16 @@ def run_query(sql: str, max_bytes_billed: int | None = None) -> pd.DataFrame:
 
 def estimate_and_run(sql: str) -> tuple[QueryCost, pd.DataFrame]:
     cost = estimate_cost(sql)
+
     if cost.bytes_processed > settings.MAX_BYTES_BILLED:
         raise QueryTooExpensiveError(
             f"This query would scan {cost.label()}, which exceeds the "
             f"configured cap of {settings.MAX_BYTES_BILLED / 1_000_000_000:.2f} GB. "
             "Try narrowing the date range or adding more filters."
         )
+
+    rate_limiter.check_global_byte_budget(cost.bytes_processed)
+
     df = run_query(sql)
+    rate_limiter.record_global_usage(cost.bytes_processed)
     return cost, df

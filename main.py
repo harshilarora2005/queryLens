@@ -6,7 +6,7 @@ import streamlit as st
 
 from components import chat_ui, session
 from components.session import STARTER_QUESTIONS
-from core.bq_executor import estimate_cost, run_query
+from core.bq_executor import estimate_and_run, QueryTooExpensiveError
 from core.sql_generator import generate_sql
 from ingestion import schema_refresh
 
@@ -106,16 +106,11 @@ if question:
 
             st.code(sql, language="sql")
 
-            try:
-                with st.spinner("Estimating cost…"):
-                    cost = estimate_cost(sql)
-                from components.cost_badge import render as render_cost
-                render_cost(cost)
-            except Exception:
-                pass
+            with st.spinner("Estimating cost and querying BigQuery…"):
+                cost, df = estimate_and_run(sql)
 
-            with st.spinner("Querying BigQuery…"):
-                df = run_query(sql)
+            from components.cost_badge import render as render_cost
+            render_cost(cost)
 
             elapsed = time.perf_counter() - t0
 
@@ -136,6 +131,12 @@ if question:
             row_count=len(df) if df is not None else 0,
             df=df,
         )
+
+    except QueryTooExpensiveError as e:
+        elapsed = time.perf_counter() - t0
+        session.complete_turn(question, sql=sql or str(e), ok=False)
+        st.warning(f"**Query too expensive to run.** {e}")
+        st.caption(f"Rejected after {elapsed:.1f}s — no cost was incurred.")
 
     except Exception as e:
         elapsed = time.perf_counter() - t0

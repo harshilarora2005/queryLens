@@ -1,4 +1,3 @@
-"""BigQuery query execution. Returns a pandas DataFrame."""
 from __future__ import annotations
 
 import os
@@ -38,7 +37,6 @@ class QueryCost:
         return self.bytes_processed / 1_000_000_000
 
     def label(self) -> str:
-        """Human-readable size label."""
         if self.bytes_processed < 1_000_000:
             return f"{self.bytes_processed / 1_000:.1f} KB"
         if self.bytes_processed < 1_000_000_000:
@@ -55,11 +53,14 @@ class QueryCost:
         return self.gb < 1_000
 
 
+class QueryTooExpensiveError(RuntimeError):
+    """Raised when a query's estimated bytes processed exceeds the configured cap."""
+
+
 def estimate_cost(sql: str) -> QueryCost:
-    """Dry-run the SQL and return estimated bytes + cost. Does not execute."""
     job_config = bigquery.QueryJobConfig(
         dry_run=True,
-        use_query_cache=False,   # force a fresh estimate every time
+        use_query_cache=False,   
     )
     dry_run_job = get_client().query(sql, job_config=job_config)
     bytes_processed = dry_run_job.total_bytes_processed or 0
@@ -67,13 +68,19 @@ def estimate_cost(sql: str) -> QueryCost:
     return QueryCost(bytes_processed=bytes_processed, estimated_usd=estimated_usd)
 
 
-def run_query(sql: str) -> pd.DataFrame:
-    """Execute validated SQL and return a DataFrame. Raises on error."""
-    return get_client().query(sql).to_dataframe()
+def run_query(sql: str, max_bytes_billed: int | None = None) -> pd.DataFrame:
+    cap = settings.MAX_BYTES_BILLED if max_bytes_billed is None else max_bytes_billed
+    job_config = bigquery.QueryJobConfig(maximum_bytes_billed=cap)
+    return get_client().query(sql, job_config=job_config).to_dataframe()
 
 
 def estimate_and_run(sql: str) -> tuple[QueryCost, pd.DataFrame]:
-    """Dry-run for cost, then execute. Returns (cost, dataframe)."""
     cost = estimate_cost(sql)
+    if cost.bytes_processed > settings.MAX_BYTES_BILLED:
+        raise QueryTooExpensiveError(
+            f"This query would scan {cost.label()}, which exceeds the "
+            f"configured cap of {settings.MAX_BYTES_BILLED / 1_000_000_000:.2f} GB. "
+            "Try narrowing the date range or adding more filters."
+        )
     df = run_query(sql)
     return cost, df

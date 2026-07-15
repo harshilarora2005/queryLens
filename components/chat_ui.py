@@ -1,7 +1,9 @@
 """Chat thread renderer."""
+
 from __future__ import annotations
 
 import streamlit as st
+
 from components import session, viz
 
 

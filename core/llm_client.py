@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import os
+
 from dotenv import load_dotenv
-from config import settings
+
 load_dotenv("config/.env")
 
 PROVIDER = os.getenv("LLM_PROVIDER", "gemini").lower()
@@ -11,6 +12,7 @@ PROVIDER = os.getenv("LLM_PROVIDER", "gemini").lower()
 def call_llm(system: str, user: str, temperature: float = 0.0) -> str:
     if PROVIDER == "openai":
         from openai import OpenAI
+
         client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
         resp = client.chat.completions.create(
             model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
@@ -24,6 +26,7 @@ def call_llm(system: str, user: str, temperature: float = 0.0) -> str:
 
     if PROVIDER == "gemini":
         import google.generativeai as genai
+
         genai.configure(api_key=os.environ["GEMINI_API_KEY"])
         model = genai.GenerativeModel(
             os.getenv("GEMINI_MODEL", "gemini-1.5-flash"),

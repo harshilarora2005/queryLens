@@ -1,5 +1,6 @@
 import pytest
-from core.sql_validator import validate, SQLValidationError
+
+from core.sql_validator import SQLValidationError, validate
 
 
 def test_select_passes():
@@ -24,16 +25,19 @@ def test_sql_comment_containing_keyword_passes():
     validate("SELECT * FROM `p.d.t` -- DROP TABLE t, just kidding")
 
 
-@pytest.mark.parametrize("sql", [
-    "DROP TABLE x",
-    "delete from x where 1=1",
-    "UPDATE x SET a=1",
-    "TRUNCATE TABLE x",
-    "INSERT INTO x VALUES (1)",
-    "MERGE INTO x USING y ON x.id=y.id WHEN MATCHED THEN UPDATE SET a=1",
-    "ALTER TABLE x ADD COLUMN c INT64",
-    "CREATE TABLE x (a INT64)",
-])
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "DROP TABLE x",
+        "delete from x where 1=1",
+        "UPDATE x SET a=1",
+        "TRUNCATE TABLE x",
+        "INSERT INTO x VALUES (1)",
+        "MERGE INTO x USING y ON x.id=y.id WHEN MATCHED THEN UPDATE SET a=1",
+        "ALTER TABLE x ADD COLUMN c INT64",
+        "CREATE TABLE x (a INT64)",
+    ],
+)
 def test_destructive_root_statement_blocked(sql):
     with pytest.raises(SQLValidationError):
         validate(sql)

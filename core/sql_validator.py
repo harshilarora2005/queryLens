@@ -28,6 +28,7 @@ _ALLOWED_ROOT_TYPES = (
 class SQLValidationError(ValueError):
     """Raised when a query does not pass validation."""
 
+
 def validate(sql: str) -> None:
     sql = sql.strip().rstrip(";")
     if not sql:
@@ -52,9 +53,7 @@ def validate(sql: str) -> None:
     root = statements[0]
 
     if not isinstance(root, _ALLOWED_ROOT_TYPES):
-        raise SQLValidationError(
-            f"Only SELECT queries are allowed. Got: {type(root).__name__}"
-        )
+        raise SQLValidationError(f"Only SELECT queries are allowed. Got: {type(root).__name__}")
 
     for node in root.walk():
         current = node[0] if isinstance(node, tuple) else node

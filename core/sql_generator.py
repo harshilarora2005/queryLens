@@ -97,8 +97,7 @@ def _date_range_context() -> str:
 
 def _system_prompt() -> str:
     examples = "\n\n".join(
-        f"Q: {ex['question']}\nSQL: {ex['sql']}"
-        for ex in SCHEMA.get("few_shot_examples", [])
+        f"Q: {ex['question']}\nSQL: {ex['sql']}" for ex in SCHEMA.get("few_shot_examples", [])
     )
     return f"""You are a BigQuery SQL expert. Convert the user question to valid
 BigQuery Standard SQL. Return ONLY the SQL query — no explanation, no markdown fences.
@@ -186,6 +185,4 @@ def generate_and_run(
             sql = _clean(call_llm(_system_prompt(), fix_prompt))
             validate(sql)
 
-    raise RuntimeError(
-        f"Query failed after {MAX_RETRIES} retries. Last error: {last_err}"
-    )
+    raise RuntimeError(f"Query failed after {MAX_RETRIES} retries. Last error: {last_err}")

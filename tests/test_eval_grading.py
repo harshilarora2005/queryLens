@@ -1,10 +1,7 @@
 import json
 from pathlib import Path
 
-import pytest
-
 from eval.grading import grade_sql
-
 
 GOLDEN_SET_PATH = Path(__file__).parent.parent / "eval" / "golden_set.json"
 
@@ -32,7 +29,7 @@ def test_correct_sql_passes_full_spec():
 
 
 def test_missing_join_fails_when_required():
-    spec = {"required_tables": ["order_items"], "requires_join": True}
+    spec: dict[str, object] = {"required_tables": ["order_items"], "requires_join": True}
     sql = "SELECT * FROM `p.d.order_items`"
     result = grade_sql(sql, spec)
     assert not result.passed
@@ -90,7 +87,7 @@ def test_qualified_and_unqualified_table_names_both_match():
 
 
 def test_minimal_spec_with_no_requirements_always_passes_if_parseable():
-    spec = {}
+    spec: dict[str, list[str] | bool] = {}
     result = grade_sql("SELECT 1", spec)
     assert result.passed
 
@@ -113,8 +110,12 @@ def test_golden_set_every_question_has_required_fields():
         assert "id" in q
         assert "question" in q and q["question"].strip()
         gradable_keys = [
-            "required_tables", "required_columns", "requires_join",
-            "requires_group_by", "requires_order_by", "requires_limit",
+            "required_tables",
+            "required_columns",
+            "requires_join",
+            "requires_group_by",
+            "requires_order_by",
+            "requires_limit",
             "required_aggregations",
         ]
         assert any(q.get(k) for k in gradable_keys), (

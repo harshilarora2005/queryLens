@@ -2,19 +2,18 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 _root = Path(__file__).parent.parent
 load_dotenv(_root / ".env")
-load_dotenv(_root / "config" / ".env") 
+load_dotenv(_root / "config" / ".env")
 
 
 def require(key: str) -> str:
     val = os.getenv(key)
     if not val:
-        raise EnvironmentError(
-            f"Missing required environment variable: {key}\n"
-        )
+        raise OSError(f"Missing required environment variable: {key}\n")
     return val
 
 

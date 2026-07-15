@@ -1,17 +1,20 @@
 from __future__ import annotations
 
-import pandas as pd
-from dataclasses import dataclass
-from google.cloud import bigquery
-from config import settings
-from core import rate_limiter
-from google.oauth2 import service_account
 import json
 import os
+from dataclasses import dataclass
+
+import pandas as pd
+from google.cloud import bigquery
+from google.oauth2 import service_account
+
+from config import settings
+from core import rate_limiter
 
 _client = None
 
 _PRICE_PER_TB = 5.0
+
 
 def get_client() -> bigquery.Client:
     global _client
@@ -73,7 +76,7 @@ class QueryTooExpensiveError(RuntimeError):
 def estimate_cost(sql: str) -> QueryCost:
     job_config = bigquery.QueryJobConfig(
         dry_run=True,
-        use_query_cache=False,  
+        use_query_cache=False,
     )
     dry_run_job = get_client().query(sql, job_config=job_config)
     bytes_processed = dry_run_job.total_bytes_processed or 0

@@ -24,15 +24,14 @@ def main() -> None:
         ref = f"{SOURCE_PROJECT}.{DATASET}.{name}"
         table = client.get_table(ref)
         sample = client.query(f"SELECT * FROM `{ref}` LIMIT 2").to_dataframe()
-        tables_meta.append({
-            "name": ref,
-            "description": table.description or "",
-            "columns": [
-                {"name": f.name, "type": f.field_type}
-                for f in table.schema
-            ],
-            "sample_rows": sample.to_dict(orient="records"),
-        })
+        tables_meta.append(
+            {
+                "name": ref,
+                "description": table.description or "",
+                "columns": [{"name": f.name, "type": f.field_type} for f in table.schema],
+                "sample_rows": sample.to_dict(orient="records"),
+            }
+        )
 
     existing = json.loads(OUT.read_text()) if OUT.exists() else {}
     existing["tables"] = tables_meta

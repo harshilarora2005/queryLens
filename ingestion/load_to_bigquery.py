@@ -2,6 +2,7 @@
 
 Only needed if you don't want to use the public bigquery-public-data dataset.
 """
+
 from __future__ import annotations
 
 import os

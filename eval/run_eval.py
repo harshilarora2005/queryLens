@@ -17,8 +17,8 @@ def _load_golden_set() -> list[dict]:
 
 
 def run(questions: list[dict], live: bool) -> dict:
-    from core.sql_generator import generate_sql, generate_and_run
     from core.bq_executor import estimate_cost
+    from core.sql_generator import generate_and_run, generate_sql
     from eval.grading import grade_sql
 
     results = []
@@ -36,7 +36,7 @@ def run(questions: list[dict], live: bool) -> dict:
                 entry["rows_returned"] = int(len(df)) if df is not None else 0
             else:
                 sql = generate_sql(question)
-                cost = estimate_cost(sql)  
+                cost = estimate_cost(sql)
                 entry["dry_run_bytes"] = cost.bytes_processed
 
             entry["sql"] = sql
@@ -70,8 +70,14 @@ def run(questions: list[dict], live: bool) -> dict:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--live", action="store_true", help="Actually execute queries against BigQuery (small real cost).")
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument(
+        "--live",
+        action="store_true",
+        help="Actually execute queries against BigQuery (small real cost).",
+    )
     parser.add_argument("--limit", type=int, default=None, help="Only run the first N questions.")
     parser.add_argument("--id", type=str, default=None, help="Run only the question with this id.")
     parser.add_argument("--output-dir", type=Path, default=RESULTS_DIR)

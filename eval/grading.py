@@ -42,10 +42,7 @@ def grade_sql(sql: str, spec: dict) -> GradeResult:
         full_refs.add(str(t.name).strip('"').lower())
 
     required_tables = spec.get("required_tables", [])
-    missing_tables = [
-        t for t in required_tables
-        if not any(t.lower() in ref for ref in full_refs)
-    ]
+    missing_tables = [t for t in required_tables if not any(t.lower() in ref for ref in full_refs)]
     checks["required_tables_present"] = not missing_tables
     if missing_tables:
         notes.append(f"Missing expected table(s): {missing_tables}")
@@ -83,10 +80,7 @@ def grade_sql(sql: str, spec: dict) -> GradeResult:
 
     required_aggregations = spec.get("required_aggregations", [])
     if required_aggregations:
-        found = {
-            name for name, cls in _AGG_FUNC_CLASSES.items()
-            if tree.find(cls) is not None
-        }
+        found = {name for name, cls in AGG_FUNC_CLASSES.items() if tree.find(cls) is not None}
         missing_agg = [a for a in required_aggregations if a not in found]
         checks["required_aggregations_present"] = not missing_agg
         if missing_agg:

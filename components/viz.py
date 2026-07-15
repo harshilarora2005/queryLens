@@ -1,13 +1,21 @@
 from __future__ import annotations
+
 import hashlib
 import io
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 
 _PALETTE = [
-    "#4F8EF7", "#F7894F", "#4FF7A0", "#F74F8E",
-    "#A04FF7", "#F7D94F", "#4FD9F7", "#F74F4F",
+    "#4F8EF7",
+    "#F7894F",
+    "#4FF7A0",
+    "#F74F8E",
+    "#A04FF7",
+    "#F7D94F",
+    "#4FD9F7",
+    "#F74F4F",
 ]
 _LAYOUT = dict(
     paper_bgcolor="rgba(0,0,0,0)",
@@ -32,9 +40,9 @@ def _is_categorical(s: pd.Series) -> bool:
 
 def _fmt(n: float) -> str:
     if abs(n) >= 1_000_000:
-        return f"{n/1_000_000:.2f}M"
+        return f"{n / 1_000_000:.2f}M"
     if abs(n) >= 1_000:
-        return f"{n/1_000:.1f}K"
+        return f"{n / 1_000:.1f}K"
     return f"{n:,.2f}"
 
 
@@ -47,6 +55,7 @@ def _widget_key(sql: str, suffix: str) -> str:
 def _nl_summary(question: str, df: pd.DataFrame) -> str:
     try:
         from core.llm_client import call_llm
+
         preview = df.head(5).to_markdown(index=False)
         prompt = (
             f"The user asked: '{question}'\n\n"
@@ -105,25 +114,24 @@ def render(df: pd.DataFrame, question: str = "", sql: str = "") -> None:
                 with tab_bar:
                     fig_bar = px.bar(df.sort_values(y, ascending=False), x=x, y=y)
                     fig_bar.update_layout(**_LAYOUT)
-                    st.plotly_chart(fig_bar, use_container_width=True,
-                                    key=_widget_key(sql, "bar"))
+                    st.plotly_chart(fig_bar, use_container_width=True, key=_widget_key(sql, "bar"))
                 with tab_pie:
                     fig_pie = px.pie(df, names=x, values=y, hole=0.35)
                     fig_pie.update_layout(**_LAYOUT)
-                    st.plotly_chart(fig_pie, use_container_width=True,
-                                    key=_widget_key(sql, "pie"))
+                    st.plotly_chart(fig_pie, use_container_width=True, key=_widget_key(sql, "pie"))
                 _action_row(df, sql)
                 return
             else:
                 fig = px.bar(
                     df.sort_values(y, ascending=True).tail(20),
-                    x=y, y=x, orientation="h",
+                    x=y,
+                    y=x,
+                    orientation="h",
                 )
 
         if fig is not None:
             fig.update_layout(**_LAYOUT)
-            st.plotly_chart(fig, use_container_width=True,
-                            key=_widget_key(sql, "fig"))
+            st.plotly_chart(fig, use_container_width=True, key=_widget_key(sql, "fig"))
 
     _action_row(df, sql)
 
@@ -140,7 +148,7 @@ def _action_row(df: pd.DataFrame, sql: str) -> None:
         file_name="results.csv",
         mime="text/csv",
         use_container_width=True,
-        key=_widget_key(sql, "csv_dl"), 
+        key=_widget_key(sql, "csv_dl"),
     )
 
     if sql:

@@ -16,10 +16,9 @@ class RateLimitError(RuntimeError):
 
 @dataclass
 class _GlobalUsageTracker:
-
     _lock: threading.Lock = field(default_factory=threading.Lock)
     _query_times: deque = field(default_factory=deque)
-    _byte_events: deque = field(default_factory=deque)  
+    _byte_events: deque = field(default_factory=deque)
 
     _WINDOW_SECONDS = 24 * 3600
 

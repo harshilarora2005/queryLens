@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import json
 import logging
 import threading
@@ -17,11 +18,13 @@ def _do_refresh() -> bool:
     with _lock:
         try:
             from ingestion.schema_extractor import main as extract_schema
+
             extract_schema()
 
             import core.sql_generator as gen
+
             gen.SCHEMA = json.loads(SCHEMA_PATH.read_text())
-            gen._fetch_date_range.clear()
+            gen._fetch_date_range.clear() # type: ignore[attr-defined]
 
             now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             st.session_state["schema_last_refreshed"] = now
@@ -33,6 +36,8 @@ def _do_refresh() -> bool:
             st.session_state["schema_refresh_error"] = str(e)
             return False
 
+def _start_background_refresh() -> None:
+    threading.Thread(target=_do_refresh, daemon=True).start()
 
 @st.cache_resource
 def _start_scheduler_once(interval_hours: int) -> bool:
@@ -40,8 +45,7 @@ def _start_scheduler_once(interval_hours: int) -> bool:
         from apscheduler.schedulers.background import BackgroundScheduler
     except ImportError:
         logger.warning(
-            "apscheduler not installed — auto schema refresh disabled. "
-            "Run: pip install apscheduler"
+            "apscheduler not installed — auto schema refresh disabled. Run: pip install apscheduler"
         )
         return False
 
@@ -54,8 +58,7 @@ def _start_scheduler_once(interval_hours: int) -> bool:
         replace_existing=True,
     )
     scheduler.start()
-
-    threading.Thread(target=_do_refresh, daemon=True).start()
+    _start_background_refresh()
 
     logger.info(f"Schema auto-refresh scheduled every {interval_hours}h")
     return True

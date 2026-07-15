@@ -7,7 +7,7 @@ import streamlit as st
 from components import chat_ui, session
 from components.session import STARTER_QUESTIONS
 from core import rate_limiter
-from core.bq_executor import estimate_and_run, QueryTooExpensiveError
+from core.bq_executor import QueryTooExpensiveError, estimate_and_run
 from core.sql_generator import generate_sql
 from ingestion import schema_refresh
 
@@ -85,7 +85,7 @@ with st.sidebar:
         f"{_usage['bytes_today'] / 1_000_000:.0f} MB / "
         f"{_usage['bytes_limit'] / 1_000_000_000:.1f} GB scanned"
     )
-    st.progress(min(_usage['queries_today'] / max(_usage['queries_limit'], 1), 1.0))
+    st.progress(min(_usage["queries_today"] / max(_usage["queries_limit"], 1), 1.0))
 
     st.divider()
     st.caption("LLM Analytics Assistant · v2.0")
@@ -97,8 +97,7 @@ chat_ui.render_history()
 
 default_q = st.session_state.pop("pending_question", "")
 question = (
-    st.chat_input("e.g. Top 10 products by revenue last month", key="main_input")
-    or default_q
+    st.chat_input("e.g. Top 10 products by revenue last month", key="main_input") or default_q
 )
 
 if question:
@@ -132,6 +131,7 @@ if question:
                 cost, df = estimate_and_run(sql)
 
             from components.cost_badge import render as render_cost
+
             render_cost(cost)
 
             elapsed = time.perf_counter() - t0
@@ -140,16 +140,20 @@ if question:
                 st.info("Query returned no rows — try a different date range or filter.")
             else:
                 from components.viz import render as render_viz
+
                 render_viz(df, question=question, sql=sql)
 
             rows = len(df) if df is not None and not df.empty else 0
             st.caption(
                 f"Completed in {elapsed:.1f}s · {rows:,} rows"
-                if rows else f"Completed in {elapsed:.1f}s"
+                if rows
+                else f"Completed in {elapsed:.1f}s"
             )
 
         session.complete_turn(
-            question, sql, ok=True,
+            question,
+            sql,
+            ok=True,
             row_count=len(df) if df is not None else 0,
             df=df,
         )
@@ -174,6 +178,5 @@ if question:
         with st.chat_message("assistant"):
             st.error(f"**Could not generate a valid query.** {e}")
             st.caption(
-                f"Failed after {elapsed:.1f}s. "
-                "Try rephrasing your question or check the schema."
+                f"Failed after {elapsed:.1f}s. Try rephrasing your question or check the schema."
             )

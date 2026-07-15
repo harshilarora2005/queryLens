@@ -1,7 +1,9 @@
 """Conversation memory and saved queries."""
+
 from __future__ import annotations
 
 import streamlit as st
+
 from config import settings
 
 MAX_TURNS = settings.MEMORY_TURNS
@@ -57,14 +59,16 @@ def complete_turn(
         }
     else:
         # Fallback: just append (shouldn't normally happen)
-        history.append({
-            "q": question,
-            "sql": sql,
-            "ok": ok,
-            "row_count": row_count,
-            "df": df,
-            "_pending": False,
-        })
+        history.append(
+            {
+                "q": question,
+                "sql": sql,
+                "ok": ok,
+                "row_count": row_count,
+                "df": df,
+                "_pending": False,
+            }
+        )
 
 
 # Keep add_turn for any callers outside main.py
@@ -85,8 +89,7 @@ def get_history() -> list[dict]:
 def get_llm_history() -> list[dict]:
     """Last MAX_TURNS successful completed turns for LLM context."""
     ok_turns = [
-        h for h in st.session_state.get("history", [])
-        if h.get("ok") and not h.get("_pending")
+        h for h in st.session_state.get("history", []) if h.get("ok") and not h.get("_pending")
     ]
     return ok_turns[-MAX_TURNS:]
 

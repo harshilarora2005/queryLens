@@ -6,6 +6,7 @@ import streamlit as st
 
 from components import chat_ui, session
 from components.session import STARTER_QUESTIONS
+from core import rate_limiter
 from core.bq_executor import estimate_and_run, QueryTooExpensiveError
 from core.sql_generator import generate_sql
 from ingestion import schema_refresh
@@ -77,6 +78,16 @@ with st.sidebar:
         st.rerun()
 
     st.divider()
+    st.markdown('<p class="sidebar-section">Usage today</p>', unsafe_allow_html=True)
+    _usage = rate_limiter.global_usage_snapshot()
+    st.caption(
+        f"{_usage['queries_today']}/{_usage['queries_limit']} queries · "
+        f"{_usage['bytes_today'] / 1_000_000:.0f} MB / "
+        f"{_usage['bytes_limit'] / 1_000_000_000:.1f} GB scanned"
+    )
+    st.progress(min(_usage['queries_today'] / max(_usage['queries_limit'], 1), 1.0))
+
+    st.divider()
     st.caption("LLM Analytics Assistant · v2.0")
 
 st.markdown("## Ask a question about your data")
@@ -98,6 +109,17 @@ if question:
 
     sql = ""
     t0 = time.perf_counter()
+
+    try:
+        rate_limiter.check_session_limit()
+        rate_limiter.check_global_query_limit()
+    except rate_limiter.RateLimitError as e:
+        session.complete_turn(question, sql=str(e), ok=False)
+        with st.chat_message("assistant"):
+            st.warning(f"**Rate limit reached.** {e}")
+        st.stop()
+
+    rate_limiter.record_session_query()
 
     try:
         with st.chat_message("assistant"):
@@ -135,14 +157,23 @@ if question:
     except QueryTooExpensiveError as e:
         elapsed = time.perf_counter() - t0
         session.complete_turn(question, sql=sql or str(e), ok=False)
-        st.warning(f"**Query too expensive to run.** {e}")
-        st.caption(f"Rejected after {elapsed:.1f}s — no cost was incurred.")
+        with st.chat_message("assistant"):
+            st.warning(f"**Query too expensive to run.** {e}")
+            st.caption(f"Rejected after {elapsed:.1f}s — no cost was incurred.")
+
+    except rate_limiter.RateLimitError as e:
+        elapsed = time.perf_counter() - t0
+        session.complete_turn(question, sql=sql or str(e), ok=False)
+        with st.chat_message("assistant"):
+            st.warning(f"**Rate limit reached.** {e}")
+            st.caption(f"Rejected after {elapsed:.1f}s — no cost was incurred.")
 
     except Exception as e:
         elapsed = time.perf_counter() - t0
         session.complete_turn(question, sql=str(e), ok=False)
-        st.error(f"**Could not generate a valid query.** {e}")
-        st.caption(
-            f"Failed after {elapsed:.1f}s. "
-            "Try rephrasing your question or check the schema."
-        )
+        with st.chat_message("assistant"):
+            st.error(f"**Could not generate a valid query.** {e}")
+            st.caption(
+                f"Failed after {elapsed:.1f}s. "
+                "Try rephrasing your question or check the schema."
+            )

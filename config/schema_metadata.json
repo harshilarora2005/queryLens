@@ -1,8 +1,8 @@
 {
   "tables": [
     {
-      "name": "llm-analytics-dev.ecommerce.orders",
-      "description": "",
+      "name": "bigquery-public-data.thelook_ecommerce.orders",
+      "description": "Programatically generated orders for The Look fictitious e-commerce store",
       "columns": [
         {
           "name": "order_id",
@@ -22,19 +22,19 @@
         },
         {
           "name": "created_at",
-          "type": "STRING"
+          "type": "TIMESTAMP"
         },
         {
           "name": "returned_at",
-          "type": "STRING"
+          "type": "TIMESTAMP"
         },
         {
           "name": "shipped_at",
-          "type": "STRING"
+          "type": "TIMESTAMP"
         },
         {
           "name": "delivered_at",
-          "type": "STRING"
+          "type": "TIMESTAMP"
         },
         {
           "name": "num_of_item",
@@ -43,32 +43,32 @@
       ],
       "sample_rows": [
         {
-          "order_id": 8,
-          "user_id": 5,
+          "order_id": 4,
+          "user_id": 3,
           "status": "Cancelled",
           "gender": "F",
-          "created_at": "2022-10-20 10:03:00+00:00",
-          "returned_at": null,
-          "shipped_at": null,
-          "delivered_at": null,
-          "num_of_item": 3
+          "created_at": "2025-02-12 20:53:52+00:00",
+          "returned_at": "NaT",
+          "shipped_at": "NaT",
+          "delivered_at": "NaT",
+          "num_of_item": 1
         },
         {
-          "order_id": 60,
-          "user_id": 44,
+          "order_id": 16,
+          "user_id": 9,
           "status": "Cancelled",
           "gender": "F",
-          "created_at": "2023-01-20 02:12:00+00:00",
-          "returned_at": null,
-          "shipped_at": null,
-          "delivered_at": null,
-          "num_of_item": 1
+          "created_at": "2021-08-24 14:34:30+00:00",
+          "returned_at": "NaT",
+          "shipped_at": "NaT",
+          "delivered_at": "NaT",
+          "num_of_item": 2
         }
       ]
     },
     {
-      "name": "llm-analytics-dev.ecommerce.order_items",
-      "description": "",
+      "name": "bigquery-public-data.thelook_ecommerce.order_items",
+      "description": "Programatically generated order items for The Look fictitious e-commerce store",
       "columns": [
         {
           "name": "id",
@@ -96,19 +96,19 @@
         },
         {
           "name": "created_at",
-          "type": "STRING"
+          "type": "TIMESTAMP"
         },
         {
           "name": "shipped_at",
-          "type": "STRING"
+          "type": "TIMESTAMP"
         },
         {
           "name": "delivered_at",
-          "type": "STRING"
+          "type": "TIMESTAMP"
         },
         {
           "name": "returned_at",
-          "type": "STRING"
+          "type": "TIMESTAMP"
         },
         {
           "name": "sale_price",
@@ -117,36 +117,36 @@
       ],
       "sample_rows": [
         {
-          "id": 152013,
-          "order_id": 104663,
-          "user_id": 83582,
+          "id": 25023,
+          "order_id": 17289,
+          "user_id": 13838,
           "product_id": 14235,
-          "inventory_item_id": 410368,
-          "status": "Cancelled",
-          "created_at": "2023-05-07 06:08:40+00:00",
-          "shipped_at": null,
-          "delivered_at": null,
-          "returned_at": null,
+          "inventory_item_id": 67486,
+          "status": "Complete",
+          "created_at": "2024-02-21 13:22:05+00:00",
+          "shipped_at": "2024-02-21 21:34:59+00:00",
+          "delivered_at": "2024-02-23 01:49:59+00:00",
+          "returned_at": "NaT",
           "sale_price": 0.0199999995529651
         },
         {
-          "id": 40993,
-          "order_id": 28204,
-          "user_id": 22551,
+          "id": 7805,
+          "order_id": 5357,
+          "user_id": 4280,
           "product_id": 14235,
-          "inventory_item_id": 110590,
-          "status": "Complete",
-          "created_at": "2023-03-14 03:47:21+00:00",
-          "shipped_at": "2023-03-15 22:57:00+00:00",
-          "delivered_at": "2023-03-18 01:08:00+00:00",
-          "returned_at": null,
+          "inventory_item_id": 21016,
+          "status": "Processing",
+          "created_at": "2025-12-02 23:13:36+00:00",
+          "shipped_at": "NaT",
+          "delivered_at": "NaT",
+          "returned_at": "NaT",
           "sale_price": 0.0199999995529651
         }
       ]
     },
     {
-      "name": "llm-analytics-dev.ecommerce.products",
-      "description": "",
+      "name": "bigquery-public-data.thelook_ecommerce.products",
+      "description": "The Look fictitious e-commerce dataset - products table",
       "columns": [
         {
           "name": "id",
@@ -211,8 +211,8 @@
       ]
     },
     {
-      "name": "llm-analytics-dev.ecommerce.users",
-      "description": "",
+      "name": "bigquery-public-data.thelook_ecommerce.users",
+      "description": "Programatically generated users for The Look fictitious e-commerce store",
       "columns": [
         {
           "name": "id",
@@ -272,43 +272,49 @@
         },
         {
           "name": "created_at",
-          "type": "STRING"
+          "type": "TIMESTAMP"
+        },
+        {
+          "name": "user_geom",
+          "type": "GEOGRAPHY"
         }
       ],
       "sample_rows": [
         {
-          "id": 457,
-          "first_name": "Timothy",
-          "last_name": "Bush",
-          "email": "timothybush@example.net",
-          "age": 65,
-          "gender": "M",
-          "state": "Acre",
-          "street_address": "87620 Johnson Hills",
-          "postal_code": "69917-400",
-          "city": "Rio Branco",
-          "country": "Brasil",
-          "latitude": -9.945567619,
-          "longitude": -67.83560991,
-          "traffic_source": "Search",
-          "created_at": "2022-07-19 13:51:00+00:00"
-        },
-        {
-          "id": 6578,
-          "first_name": "Elizabeth",
-          "last_name": "Martinez",
-          "email": "elizabethmartinez@example.com",
-          "age": 34,
+          "id": 50815,
+          "first_name": "Samantha",
+          "last_name": "Silva",
+          "email": "samanthasilva@example.net",
+          "age": 20,
           "gender": "F",
           "state": "Acre",
-          "street_address": "1705 Nielsen Land",
-          "postal_code": "69917-400",
-          "city": "Rio Branco",
+          "street_address": "3353 Zhang Islands Suite 762",
+          "postal_code": "69980-000",
+          "city": "null",
           "country": "Brasil",
-          "latitude": -9.945567619,
-          "longitude": -67.83560991,
+          "latitude": -8.065346116,
+          "longitude": -72.87094866,
           "traffic_source": "Search",
-          "created_at": "2023-11-08 18:49:00+00:00"
+          "created_at": "2025-12-01 15:05:00+00:00",
+          "user_geom": "POINT(-72.87094866 -8.065346116)"
+        },
+        {
+          "id": 89200,
+          "first_name": "Steven",
+          "last_name": "Lee",
+          "email": "stevenlee@example.com",
+          "age": 69,
+          "gender": "M",
+          "state": "Acre",
+          "street_address": "3311 Lee Shore Suite 186",
+          "postal_code": "69980-000",
+          "city": "null",
+          "country": "Brasil",
+          "latitude": -8.065346116,
+          "longitude": -72.87094866,
+          "traffic_source": "Email",
+          "created_at": "2023-11-15 05:27:00+00:00",
+          "user_geom": "POINT(-72.87094866 -8.065346116)"
         }
       ]
     }

@@ -10,6 +10,7 @@ load_dotenv(_root / "config" / ".env")
 
 
 def require(key: str) -> str:
+    """Return env var or raise a clear error."""
     val = os.getenv(key)
     if not val:
         raise EnvironmentError(
@@ -23,7 +24,11 @@ def get(key: str, default: str = "") -> str:
 
 
 GCP_PROJECT_ID: str = get("GCP_PROJECT_ID", "")
-BQ_DATASET: str = get("BQ_DATASET", "ecommerce")
+
+BQ_SOURCE_PROJECT: str = get("BQ_SOURCE_PROJECT", "bigquery-public-data")
+
+
+BQ_DATASET: str = get("BQ_DATASET", "thelook_ecommerce")
 GOOGLE_APPLICATION_CREDENTIALS: str = get(
     "GOOGLE_APPLICATION_CREDENTIALS", "credentials/bq_key.json"
 )

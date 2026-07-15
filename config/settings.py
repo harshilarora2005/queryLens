@@ -1,3 +1,4 @@
+"""Centralised config loader. All modules import from here."""
 from __future__ import annotations
 
 import os
@@ -25,6 +26,7 @@ def get(key: str, default: str = "") -> str:
 
 GCP_PROJECT_ID: str = get("GCP_PROJECT_ID", "")
 
+
 BQ_SOURCE_PROJECT: str = get("BQ_SOURCE_PROJECT", "bigquery-public-data")
 
 
@@ -37,6 +39,12 @@ LLM_PROVIDER: str = get("LLM_PROVIDER", "openai").lower()
 MEMORY_TURNS: int = int(get("MEMORY_TURNS", "4"))
 
 MAX_BYTES_BILLED: int = int(get("MAX_BYTES_BILLED", str(1_000_000_000)))
+
+SESSION_MAX_QUERIES: int = int(get("SESSION_MAX_QUERIES", "20"))
+SESSION_WINDOW_MINUTES: int = int(get("SESSION_WINDOW_MINUTES", "60"))
+
+GLOBAL_MAX_QUERIES_PER_DAY: int = int(get("GLOBAL_MAX_QUERIES_PER_DAY", "300"))
+GLOBAL_MAX_BYTES_PER_DAY: int = int(get("GLOBAL_MAX_BYTES_PER_DAY", str(5_000_000_000)))
 
 OPENAI_API_KEY: str = get("OPENAI_API_KEY")
 OPENAI_MODEL: str = get("OPENAI_MODEL", "gpt-4o-mini")

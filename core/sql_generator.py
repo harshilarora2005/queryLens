@@ -19,7 +19,7 @@ MAX_RETRIES = 2
 HISTORY_TURNS = settings.MEMORY_TURNS
 HISTORY_CHAR_LIMIT = 2_000
 
-_ERROR_HINTS: list[tuple[re.Pattern, str]] = [
+_ERROR_HINTS = [
     (
         re.compile(r"PARSE_TIMESTAMP", re.I),
         "PARSE_TIMESTAMP requires 2 args. Prefer TIMESTAMP(col) instead — "
@@ -56,7 +56,7 @@ def _get_error_hint(error: str) -> str:
 def _fetch_date_range() -> dict | None:
     """Query the actual MIN/MAX dates from the dataset. Cached for 1 hour."""
     try:
-        table = f"{settings.GCP_PROJECT_ID}.{settings.BQ_DATASET}.orders"
+        table = f"{settings.BQ_SOURCE_PROJECT}.{settings.BQ_DATASET}.orders"
         sql = f"""
             SELECT
                 DATE(TIMESTAMP(MIN(created_at))) AS min_date,
@@ -75,7 +75,6 @@ def _fetch_date_range() -> dict | None:
 
 
 def _date_range_context() -> str:
-    """Return a prompt snippet describing the dataset's actual date range."""
     dr = _fetch_date_range()
     if dr:
         return (
@@ -89,7 +88,6 @@ def _date_range_context() -> str:
             f"  - 'this year'     → EXTRACT(YEAR FROM DATE '{dr['max']}')\n"
             f"  - 'recent'        → use {dr['max']} as the reference point\n"
         )
-    # Fallback if date range query fails
     return (
         "IMPORTANT: This dataset is not current — it does not contain recent data. "
         "Avoid CURRENT_DATE() or CURRENT_TIMESTAMP(). "
@@ -117,7 +115,7 @@ Rules:
 
 Timestamp handling (CRITICAL):
 - Timestamp columns (created_at, returned_at, shipped_at, delivered_at) are stored
-  as STRING in the format '2023-03-15 14:22:00+00:00'.
+as STRING in the format '2023-03-15 14:22:00+00:00'.
 - Cast with TIMESTAMP(col) before any date operation:
     DATE(TIMESTAMP(created_at))
     EXTRACT(YEAR FROM TIMESTAMP(created_at))
@@ -143,7 +141,7 @@ def _clean(sql: str) -> str:
 def _build_user_message(question: str, history: list[dict]) -> str:
     if not history:
         return question
-    parts: list[str] = []
+    parts = []
     total = 0
     for h in reversed(history[-HISTORY_TURNS:]):
         chunk = f"User: {h['q']}\nAssistant SQL: {h['sql']}\n"
@@ -167,7 +165,7 @@ def generate_and_run(
     history: list[dict] | None = None,
 ) -> tuple[str, pd.DataFrame]:
     sql = generate_sql(question, history)
-    last_err: Exception | None = None
+    last_err = None
 
     for attempt in range(MAX_RETRIES + 1):
         try:
